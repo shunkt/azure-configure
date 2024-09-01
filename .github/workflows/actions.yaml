@@ -1,0 +1,63 @@
+name: Release
+
+# Releasesへのファイル追加のために書き込み権限が必要
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          # - {
+          #     os: macos-latest,
+          #     target: x86_64-apple-darwin,
+          #     use-cross: false,
+          #     extension: "",
+          #   }
+          # - {
+          #     os: macos-latest,
+          #     target: aarch64-apple-darwin,
+          #     use-cross: false,
+          #     extension: "",
+          #   }
+          - {
+              os: windows-latest,
+              target: x86_64-pc-windows-msvc,
+              use-cross: false,
+              extension: .exe,
+            }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # rustcやcargoをインストール
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.job.target }}
+
+      # targetに応じてcargoもしくはcrossを使用してビルド
+      - name: Build
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          use-cross: ${{ matrix.job.use-cross }}
+          command: build
+          args: --release --target ${{ matrix.job.target }}
+
+      # ビルド済みバイナリをReleasesに配置
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            target/${{ matrix.job.target }}/release/bundle
