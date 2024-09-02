@@ -12,23 +12,6 @@
   },
   "tauri": {
     "allowlist": {
-      "shell": {
-        "all": true,
-        "execute": true,
-        "open": true,
-        "scope": [
-          {
-            "name": "az-login",
-            "cmd": "shell -c az login",
-            "args": [
-              "-c",
-              "az",
-              "login"
-            ]
-          }
-        ],
-        "sidecar": true
-      },
       "dialog": {
         "open": true
       },
