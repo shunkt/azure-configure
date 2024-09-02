@@ -17,8 +17,14 @@ import {
   Button,
   TextField,
   Spinner,
+  ScrollArea,
+  Box,
 } from "@radix-ui/themes";
-import { FileTextIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import {
+  FileTextIcon,
+  ExclamationTriangleIcon,
+  MagnifyingGlassIcon,
+} from "@radix-ui/react-icons";
 
 function App() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -26,10 +32,10 @@ function App() {
   const [selectedWebapp, setSelectedWebapp] = useState<Webapp>();
   const [envVars, setEnvVars] = useState<Env[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filterValue, setFilterValue] = useState("");
 
   async function fetchSubscriptions() {
     const subscriptions = await invoke("list_subscriptions");
-    console.log(subscriptions);
     setSubscriptions(subscriptions as Subscription[]);
   }
 
@@ -84,63 +90,89 @@ function App() {
         </DropdownMenu.Root>
       </Flex>
       <Heading as="h1">Azure Configure</Heading>
-
-      <Heading as="h2" size="3">
-        Select Subscription
-      </Heading>
+      <Flex py="1">
+        <Heading as="h2" size="3">
+          Select Subscription
+        </Heading>
+      </Flex>
       <Flex>
-        <RadioCards.Root>
-          {subscriptions.map((subscription) => (
-            <RadioCards.Item
-              value={subscription.subscriptionId}
-              key={subscription.subscriptionId}
-              onClick={() => fetchWebapps(subscription.subscriptionId)}
-            >
-              <Flex direction="column" width="240px">
-                <Text as="div">{subscription.displayName}</Text>
-                <DataList.Root>
-                  <DataList.Item>
-                    <DataList.Label>State</DataList.Label>
-                    <DataList.Value>
-                      <Badge radius="full" variant="soft" color="jade">
-                        {subscription.state}
-                      </Badge>
-                    </DataList.Value>
-                  </DataList.Item>
-                </DataList.Root>
-              </Flex>
-            </RadioCards.Item>
-          ))}
-        </RadioCards.Root>
+        <ScrollArea scrollbars="horizontal">
+          <RadioCards.Root columns="repeat(auto-fill, 240px)">
+            {subscriptions.map((subscription) => (
+              <RadioCards.Item
+                value={subscription.subscriptionId}
+                key={subscription.subscriptionId}
+                onClick={() => fetchWebapps(subscription.subscriptionId)}
+              >
+                <Flex direction="column">
+                  <Text as="div">{subscription.displayName}</Text>
+                  <DataList.Root>
+                    <DataList.Item>
+                      <DataList.Label>State</DataList.Label>
+                      <DataList.Value>
+                        <Badge radius="full" variant="soft" color="jade">
+                          {subscription.state}
+                        </Badge>
+                      </DataList.Value>
+                    </DataList.Item>
+                  </DataList.Root>
+                </Flex>
+              </RadioCards.Item>
+            ))}
+          </RadioCards.Root>
+        </ScrollArea>
       </Flex>
       {webapps.length > 0 && (
-        <Heading as="h2" size="3" my="1">
-          Select Appservice
-        </Heading>
+        <Flex direction="row" py="1" width="100%" align="center">
+          <Heading as="h2" size="3">
+            Select Appservice
+          </Heading>
+          <Flex justify="start" flexGrow="1">
+            <Box flexGrow="1" pl="3">
+              <TextField.Root
+                value={filterValue}
+                onChange={(e) => {
+                  setFilterValue(e.target.value);
+                }}
+                placeholder="Search with name"
+              >
+                <TextField.Slot>
+                  <MagnifyingGlassIcon />
+                </TextField.Slot>
+              </TextField.Root>
+            </Box>
+          </Flex>
+        </Flex>
       )}
       <Flex>
-        <RadioCards.Root>
-          {webapps.map((webapp) => (
-            <RadioCards.Item
-              value={webapp.name}
-              key={webapp.name + webapp.resourceGroup}
-              onClick={() => {
-                fetchAppserviceEnvVars(webapp);
-                setSelectedWebapp(webapp);
-              }}
-            >
-              <Flex direction="column" width="240px">
-                <Text as="div">{webapp.name}</Text>
-                <DataList.Root>
-                  <DataList.Item>
-                    <DataList.Label>Resource Group</DataList.Label>
-                    <DataList.Value>{webapp.resourceGroup}</DataList.Value>
-                  </DataList.Item>
-                </DataList.Root>
-              </Flex>
-            </RadioCards.Item>
-          ))}
-        </RadioCards.Root>
+        <ScrollArea scrollbars="horizontal">
+          <RadioCards.Root columns="repeat(auto-fill, 240px)">
+            {webapps
+              .filter((webapp) =>
+                webapp.name.toLowerCase().includes(filterValue.toLowerCase())
+              )
+              .map((webapp) => (
+                <RadioCards.Item
+                  value={webapp.name}
+                  key={webapp.name + webapp.resourceGroup}
+                  onClick={() => {
+                    fetchAppserviceEnvVars(webapp);
+                    setSelectedWebapp(webapp);
+                  }}
+                >
+                  <Flex direction="column" width="240px">
+                    <Text as="div">{webapp.name}</Text>
+                    <DataList.Root>
+                      <DataList.Item>
+                        <DataList.Label>Resource Group</DataList.Label>
+                        <DataList.Value>{webapp.resourceGroup}</DataList.Value>
+                      </DataList.Item>
+                    </DataList.Root>
+                  </Flex>
+                </RadioCards.Item>
+              ))}
+          </RadioCards.Root>
+        </ScrollArea>
       </Flex>
       <Separator my="3" size="4" />
       {envVars.length > 0 && (
