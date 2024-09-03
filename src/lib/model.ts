@@ -21,10 +21,10 @@ export interface Webapp {
 
 export interface AppserviceEnvVar {
   name: string;
-  value: string;
+  value: string | null;
   isExpected: boolean;
 }
 
 export interface Env extends AppserviceEnvVar {
-  previousValue: string;
+  previousValue: string | null;
 }

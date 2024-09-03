@@ -50,6 +50,7 @@ function App() {
     const envVars: AppserviceEnvVar[] = await invoke("get_appservice_envs", {
       webapp: webapp,
     });
+    console.log(envVars);
     setEnvVars(
       envVars.map((envVar) => ({ ...envVar, previousValue: envVar.value }))
     );
@@ -97,7 +98,7 @@ function App() {
       </Flex>
       <Flex>
         <ScrollArea scrollbars="horizontal">
-          <RadioCards.Root columns="repeat(auto-fill, 240px)">
+          <RadioCards.Root columns="4">
             {subscriptions.map((subscription) => (
               <RadioCards.Item
                 value={subscription.subscriptionId}
@@ -146,7 +147,7 @@ function App() {
       )}
       <Flex>
         <ScrollArea scrollbars="horizontal">
-          <RadioCards.Root columns="repeat(auto-fill, 240px)">
+          <RadioCards.Root columns="4">
             {webapps
               .filter((webapp) =>
                 webapp.name.toLowerCase().includes(filterValue.toLowerCase())
@@ -187,7 +188,7 @@ function App() {
             <DataList.Value>
               <Flex width="100%">
                 <TextField.Root
-                  value={envVar.value}
+                  value={envVar.value ?? ""}
                   color={
                     envVar.isExpected && !!!envVar.value ? "yellow" : "gray"
                   }
@@ -205,7 +206,7 @@ function App() {
                   style={{ width: "100%" }}
                 >
                   <TextField.Slot side="right">
-                    {envVar.isExpected && !!!envVar.value ? (
+                    {envVar.isExpected && !envVar.value ? (
                       <ExclamationTriangleIcon />
                     ) : (
                       <></>
