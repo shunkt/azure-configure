@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Subscription, Webapp, AppserviceEnvVar, Env } from "./lib/model";
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
+import { trace } from "tauri-plugin-log-api";
 import { exists, createDir, BaseDirectory, copyFile } from "@tauri-apps/api/fs";
 import "@radix-ui/themes/styles.css";
 import {
@@ -50,7 +51,7 @@ function App() {
     const envVars: AppserviceEnvVar[] = await invoke("get_appservice_envs", {
       webapp: webapp,
     });
-    console.log(envVars);
+    trace(`envVars: ${JSON.stringify(envVars)}`);
     setEnvVars(
       envVars.map((envVar) => ({ ...envVar, previousValue: envVar.value }))
     );
@@ -69,7 +70,6 @@ function App() {
   }
 
   useEffect(() => {
-    console.log("fetching subscriptions");
     fetchSubscriptions();
   }, []);
 
@@ -98,7 +98,7 @@ function App() {
       </Flex>
       <Flex>
         <ScrollArea scrollbars="horizontal">
-          <RadioCards.Root columns="4">
+          <RadioCards.Root columns="repeat(fit-fill, 256px)">
             {subscriptions.map((subscription) => (
               <RadioCards.Item
                 value={subscription.subscriptionId}
@@ -147,7 +147,7 @@ function App() {
       )}
       <Flex>
         <ScrollArea scrollbars="horizontal">
-          <RadioCards.Root columns="4">
+          <RadioCards.Root columns="repeat(fit-fill, 256px)">
             {webapps
               .filter((webapp) =>
                 webapp.name.toLowerCase().includes(filterValue.toLowerCase())
