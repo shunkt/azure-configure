@@ -52,7 +52,7 @@ function App() {
       webapp: webapp,
     });
     trace(`envVars: ${JSON.stringify(envVars)}`);
-    setEnvVars(
+    setEnvVars(() =>
       envVars.map((envVar) => ({ ...envVar, previousValue: envVar.value }))
     );
   }
@@ -98,7 +98,7 @@ function App() {
       </Flex>
       <Flex>
         <ScrollArea scrollbars="horizontal">
-          <RadioCards.Root columns="repeat(fit-fill, 256px)">
+          <RadioCards.Root columns="repeat(auto-fill, 256px)">
             {subscriptions.map((subscription) => (
               <RadioCards.Item
                 value={subscription.subscriptionId}
@@ -147,7 +147,7 @@ function App() {
       )}
       <Flex>
         <ScrollArea scrollbars="horizontal">
-          <RadioCards.Root columns="repeat(fit-fill, 256px)">
+          <RadioCards.Root columns="repeat(auto-fill, 256px)">
             {webapps
               .filter((webapp) =>
                 webapp.name.toLowerCase().includes(filterValue.toLowerCase())
