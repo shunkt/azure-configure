@@ -25,6 +25,7 @@ import {
   FileTextIcon,
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
+  CopyIcon,
 } from "@radix-ui/react-icons";
 
 function App() {
@@ -213,6 +214,14 @@ function App() {
                     )}
                   </TextField.Slot>
                 </TextField.Root>
+                <Flex align="center" ml="1">
+                  <CopyIcon
+                    cursor="pointer"
+                    onClick={() => {
+                      navigator.clipboard.writeText(envVar.value ?? "");
+                    }}
+                  />
+                </Flex>
               </Flex>
             </DataList.Value>
           </DataList.Item>
