@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Subscription, Webapp, AppserviceEnvVar, Env } from "./lib/model";
-import { invoke } from "@tauri-apps/api/tauri";
-import { open } from "@tauri-apps/api/dialog";
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import { trace } from "tauri-plugin-log-api";
-import { exists, createDir, BaseDirectory, copyFile } from "@tauri-apps/api/fs";
+import { exists, mkdir, BaseDirectory, copyFile } from "@tauri-apps/plugin-fs";
 import "@radix-ui/themes/styles.css";
 import {
   Container,
@@ -62,11 +62,13 @@ function App() {
     const selected = await open({
       filters: [{ name: "JSON", extensions: ["json"] }],
     });
-    if (!(await exists("tmp", { dir: BaseDirectory.AppData }))) {
-      await createDir("tmp", { dir: BaseDirectory.AppData, recursive: true });
+    if (!(await exists("tmp", { baseDir: BaseDirectory.AppData }))) {
+      await mkdir("tmp", { baseDir: BaseDirectory.AppData, recursive: true });
     }
     if (typeof selected === "string") {
-      await copyFile(selected, "default.json", { dir: BaseDirectory.AppData });
+      await copyFile(selected, "default.json", {
+        toPathBaseDir: BaseDirectory.AppData,
+      });
     }
   }
 
