@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { Subscription, Webapp, AppserviceEnvVar, Env } from "./lib/model";
+import { createDotenv } from "./lib/action";
 import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, save, message } from "@tauri-apps/plugin-dialog";
 import { trace } from "tauri-plugin-log-api";
-import { exists, mkdir, BaseDirectory, copyFile } from "@tauri-apps/plugin-fs";
+import {
+  exists,
+  mkdir,
+  BaseDirectory,
+  copyFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import "@radix-ui/themes/styles.css";
 import {
   Container,
@@ -72,6 +79,15 @@ function App() {
     }
   }
 
+  async function saveEnvAsFile() {
+    const filepath = await save({ defaultPath: ".env" });
+    if (filepath === null) {
+      await message("Failed save file", "Save");
+    } else {
+      await writeTextFile(filepath, createDotenv(envVars));
+    }
+  }
+
   useEffect(() => {
     fetchSubscriptions();
   }, []);
@@ -89,6 +105,13 @@ function App() {
             <DropdownMenu.Item onClick={async () => await loadSettings()}>
               <FileTextIcon />
               Choose Default Settings
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              onClick={async () => await saveEnvAsFile()}
+              disabled={envVars.length === 0}
+            >
+              <FileTextIcon />
+              Save As...
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Root>

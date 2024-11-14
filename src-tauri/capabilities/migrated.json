@@ -7,6 +7,9 @@
   ],
   "permissions": [
     "core:default",
+    "dialog:default",
+    "dialog:allow-open",
+    "fs:default",
     "fs:allow-copy-file",
     "fs:allow-mkdir",
     "fs:allow-exists",
@@ -16,8 +19,6 @@
         "$APPDATA/*"
       ]
     },
-    "dialog:allow-open",
-    "dialog:default",
-    "fs:default"
+    "fs:allow-app-write"
   ]
 }
