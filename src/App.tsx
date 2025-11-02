@@ -17,7 +17,6 @@ import {
   Heading,
   Text,
   DataList,
-  Badge,
   RadioCards,
   Flex,
   Separator,
@@ -35,24 +34,41 @@ import {
   CopyIcon,
 } from "@radix-ui/react-icons";
 
+import SubscriptionCard, {
+  dummySubscription,
+} from "./components/SubscriptionCard";
+
+import AppserviceCard, { dummyWebapp } from "./components/AppserviceCard";
+
 function App() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [webapps, setWebapps] = useState<Webapp[]>([]);
   const [selectedWebapp, setSelectedWebapp] = useState<Webapp>();
   const [envVars, setEnvVars] = useState<Env[]>([]);
-  const [loading, setLoading] = useState(false);
+
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [loadingWebapps, setLoadingWebapps] = useState(false);
+
   const [filterValue, setFilterValue] = useState("");
 
   async function fetchSubscriptions() {
-    const subscriptions = await invoke("list_subscriptions");
-    setSubscriptions(subscriptions as Subscription[]);
+    setLoadingSubscription(true);
+    try {
+      const subscriptions = await invoke("list_subscriptions");
+      setSubscriptions(subscriptions as Subscription[]);
+    } catch (error) {
+      console.error("Error fetching subscriptions:", error);
+    }
+    setLoadingSubscription(false);
   }
 
   async function fetchWebapps(subscriptionId: string) {
+    setLoadingWebapps(true);
     const webapps = await invoke("list_webapps", {
       subscription: subscriptionId,
     });
     setWebapps(webapps as Webapp[]);
+    setLoadingWebapps(false);
   }
 
   async function fetchAppserviceEnvVars(webapp: Webapp) {
@@ -125,34 +141,30 @@ function App() {
       <Flex>
         <ScrollArea scrollbars="horizontal">
           <RadioCards.Root columns="repeat(auto-fill, 256px)">
-            {subscriptions.map((subscription) => (
-              <RadioCards.Item
-                value={subscription.subscriptionId}
-                key={subscription.subscriptionId}
-                onClick={() => fetchWebapps(subscription.subscriptionId)}
-              >
-                <Flex direction="column">
-                  <Text as="div">{subscription.displayName}</Text>
-                  <DataList.Root>
-                    <DataList.Item>
-                      <DataList.Label>State</DataList.Label>
-                      <DataList.Value>
-                        <Badge radius="full" variant="soft" color="jade">
-                          {subscription.state}
-                        </Badge>
-                      </DataList.Value>
-                    </DataList.Item>
-                  </DataList.Root>
-                </Flex>
-              </RadioCards.Item>
-            ))}
+            {loadingSubscription ? (
+              <SubscriptionCard
+                subscription={dummySubscription}
+                onClick={() => {}}
+                isLoading={loadingSubscription}
+              />
+            ) : (
+              <>
+                {subscriptions.map((subscription) => (
+                  <SubscriptionCard
+                    key={subscription.subscriptionId}
+                    subscription={subscription}
+                    onClick={fetchWebapps}
+                  />
+                ))}
+              </>
+            )}
           </RadioCards.Root>
         </ScrollArea>
       </Flex>
-      {webapps.length > 0 && (
+      {(webapps.length > 0 || loadingWebapps) && (
         <Flex direction="row" py="1" width="100%" align="center">
           <Heading as="h2" size="3">
-            Select Appservice
+            Select AppService
           </Heading>
           <Flex justify="start" flexGrow="1">
             <Box flexGrow="1" pl="3">
@@ -174,30 +186,31 @@ function App() {
       <Flex>
         <ScrollArea scrollbars="horizontal">
           <RadioCards.Root columns="repeat(auto-fill, 256px)">
-            {webapps
-              .filter((webapp) =>
-                webapp.name.toLowerCase().includes(filterValue.toLowerCase())
-              )
-              .map((webapp) => (
-                <RadioCards.Item
-                  value={webapp.name}
-                  key={webapp.name + webapp.resourceGroup}
-                  onClick={() => {
-                    fetchAppserviceEnvVars(webapp);
-                    setSelectedWebapp(webapp);
-                  }}
-                >
-                  <Flex direction="column" width="240px">
-                    <Text as="div">{webapp.name}</Text>
-                    <DataList.Root>
-                      <DataList.Item>
-                        <DataList.Label>Resource Group</DataList.Label>
-                        <DataList.Value>{webapp.resourceGroup}</DataList.Value>
-                      </DataList.Item>
-                    </DataList.Root>
-                  </Flex>
-                </RadioCards.Item>
-              ))}
+            {loadingWebapps ? (
+              <AppserviceCard
+                webapp={dummyWebapp}
+                onClick={() => {}}
+                isLoading={loadingWebapps}
+              />
+            ) : (
+              <>
+                {webapps
+                  .filter((webapp) =>
+                    webapp.name
+                      .toLowerCase()
+                      .includes(filterValue.toLowerCase())
+                  )
+                  .map((webapp) => (
+                    <AppserviceCard
+                      webapp={webapp}
+                      onClick={() => {
+                        fetchAppserviceEnvVars(webapp);
+                        setSelectedWebapp(webapp);
+                      }}
+                    />
+                  ))}
+              </>
+            )}
           </RadioCards.Root>
         </ScrollArea>
       </Flex>
@@ -255,9 +268,9 @@ function App() {
       <Flex>
         {selectedWebapp && envVars.length > 0 && (
           <Button
-            disabled={loading}
+            disabled={loadingSubscription}
             onClick={async () => {
-              setLoading(true);
+              setLoadingSubscription(true);
               await invoke("replace_appservice_envs", {
                 webapp: selectedWebapp,
                 envs: envVars,
@@ -265,10 +278,10 @@ function App() {
               if (selectedWebapp) {
                 await fetchAppserviceEnvVars(selectedWebapp);
               }
-              setLoading(false);
+              setLoadingSubscription(false);
             }}
           >
-            <Spinner loading={loading} />
+            <Spinner loading={loadingSubscription} />
             Save
           </Button>
         )}
